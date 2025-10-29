@@ -1,35 +1,40 @@
 <?php
 require(__DIR__ . "/db.php");
 
+// enable errors for debugging (remove on production)
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 function validateID() {
-        global $conn;
-        if (empty($_GET["id"])) {
-            http_response_code(400);
-            exit;
-        }
+    global $conn;
+    if (empty($_GET["id"])) {
+        http_response_code(400);
+        exit;
+    }
 
-        $id = $_GET["id"];
+    $id = $_GET["id"];
 
-        if (!is_numeric($id)) {
-            header("Content-Type: application/json; charset=utf-8");
-            http_response_code(400);
-            echo json_encode(["message" => "ID is malformed"]);
-            exit;
-        }
+    if (!is_numeric($id)) {
+        header("Content-Type: application/json; charset=utf-8");
+        http_response_code(400);
+        echo json_encode(["message" => "ID is malformed"]);
+        exit;
+    }
 
-        $id = intval($id, 10);
+    $id = intval($id, 10);
 
-        $stmt = $conn->prepare("SELECT * FROM birbs WHERE id = :id");
-        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
-        $stmt->execute();
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $conn->prepare("SELECT * FROM birbs WHERE id = :id");
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!is_array($result)) {
-            http_response_code(404);
-            exit;
-        }
+    if (!is_array($result)) {
+        http_response_code(404);
+        exit;
+    }
 
-        return $id;
+    return $id;
 }
 
 // HENT ALLE PRODUKTER
@@ -40,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && empty($_GET["id"])) {
     $stmt = $conn->prepare("SELECT COUNT(id) FROM birbs");
     $stmt->execute();
     $totalCount = (int)$stmt->fetchColumn();
-    
+
     $stmt = $conn->prepare("SELECT id, name FROM birbs LIMIT :limit OFFSET :offset");
     $stmt->bindParam(":limit", $limit, PDO::PARAM_INT);
     $stmt->bindParam(":offset", $offset, PDO::PARAM_INT);
@@ -54,7 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && empty($_GET["id"])) {
     $next = $base . "?offset=$nextOffset&limit=$limit";
     $prev = $base . "?offset=$prevOffset&limit=$limit";
 
-    // Tilføj Hypermedia Controls
     for ($i = 0; $i < count($results); $i++) {
         $results[$i]["url"] = $base . "?id=" . $results[$i]["id"];
         unset($results[$i]["id"]);
@@ -70,60 +74,52 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && empty($_GET["id"])) {
     echo json_encode($output);
 }
 
-// HENT ENKELT PRODUKT
+// HENT ENKELT PRODUKT (no JOINs — use existing birbs columns)
 if ($_SERVER["REQUEST_METHOD"] === "GET" && !empty($_GET["id"])) {
     $id = validateID();
 
-    $stmt = $conn->prepare("SELECT 
-                        birbs.id, birbs.name,
-                        birbs.description, birbs.wingspan,
-                        birbs.weight_in_grams, birbs.habitat, birbs.diet, birbs.features, media.url AS url
-            FROM birbs
-                INNER JOIN product_media ON product_media.birb_id = birbs.id
-                INNER JOIN media ON media.id = product_media.media_id
-            WHERE birbs.id = :id");
+    $stmt = $conn->prepare("SELECT id, name, habitat, diet, weight_in_grams, wingspan, features FROM birbs WHERE id = :id");
     $stmt->bindParam(":id", $id, PDO::PARAM_INT);
     $stmt->execute();
 
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $output = [
-        "id" => $results[0]["id"],
-        "name" => $results[0]["name"],
-        "habitat" => $results[0]["habitat"],
-        "diet" => $results[0]["diet"],
-        "weight" => $results[0]["weight_in_grams"],
-        "wingspan" => $results[0]["wingspan"],
-        "features" => $results[0]["features"],
-        "url" => [],
-	];
-
-    for ($i = 0; $i < count($results); $i++) {
-        $output["url"][] = $results[$i]["url"];
+    if (!$row) {
+        header("Content-Type: application/json; charset=utf-8");
+        http_response_code(404);
+        echo json_encode(["message" => "Not found"]);
+        exit;
     }
 
     header("Content-Type: application/json; charset=utf-8");
-    echo json_encode($output);
+    echo json_encode($row);
 }
 
 // OPRET ET PRODUKT
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $name = $_POST["name"];
-    $habitat = $_POST["habitat"];
-    $diet = $_POST["diet"];
-    $features = $_POST["features"];
-    $weight = $_POST["weight"];
-    $wingspan = $_POST["wingspan"];
+    $name = $_POST["name"] ?? null;
+    $habitat = $_POST["habitat"] ?? null;
+    $diet = $_POST["diet"] ?? null;
+    $features = $_POST["features"] ?? null;
+    $weight = isset($_POST["weight"]) ? intval($_POST["weight"]) : null;
+    $wingspan = isset($_POST["wingspan"]) ? floatval($_POST["wingspan"]) : null;
 
-	$stmt = $conn->prepare("INSERT INTO birbs (`name`, `habitat`, `diet`, `wingspan`, `features`, `weight_in_grams`)
-													VALUES(:name, :habitat, :diet, :wingspan, :features, :weight)");
-	
-	$stmt->bindParam(":name", $name);
-	$stmt->bindParam(":habitat", $habitat);
-	$stmt->bindParam(":diet", $diet);
-	$stmt->bindParam(":weight", $weight, PDO::PARAM_INT);
-	$stmt->bindParam(":wingspan", $wingspan, PDO::PARAM_INT);
-	$stmt->bindParam(":features", $features);
+    if (empty($name) || $weight === null || $wingspan === null) {
+        header("Content-Type: application/json; charset=utf-8");
+        http_response_code(400);
+        echo json_encode(["message" => "missing required fields: name, weight, wingspan"]);
+        exit;
+    }
+
+    $stmt = $conn->prepare("INSERT INTO birbs (`name`, `habitat`, `diet`, `wingspan`, `features`, `weight_in_grams`)
+                            VALUES(:name, :habitat, :diet, :wingspan, :features, :weight)");
+
+    $stmt->bindParam(":name", $name);
+    $stmt->bindParam(":habitat", $habitat);
+    $stmt->bindParam(":diet", $diet);
+    $stmt->bindParam(":wingspan", $wingspan);
+    $stmt->bindParam(":features", $features);
+    $stmt->bindParam(":weight", $weight, PDO::PARAM_INT);
 
     $stmt->execute();
     http_response_code(201);
@@ -135,57 +131,33 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
 
     parse_str(file_get_contents("php://input"), $body);
 
-/* 	if (empty($body["name"])) {
-		header("Content-Type: application/json; charset=utf-8");
-		http_response_code(400);
-		echo json_encode(["message" => "missing field 'name'"]);
-		exit;
-	}
-	if (empty($body["description"])) {
-		header("Content-Type: application/json; charset=utf-8");
-		http_response_code(400);
-		echo json_encode(["message" => "missing field 'description'"]);
-		exit;
-	}
-	if (empty($body["price"])) {
-		header("Content-Type: application/json; charset=utf-8");
-		http_response_code(400);
-		echo json_encode(["message" => "missing field 'price'"]);
-		exit;
-	}
-	if (empty($body["weight"])) {
-		header("Content-Type: application/json; charset=utf-8");
-		http_response_code(400);
-		echo json_encode(["message" => "missing field 'weight'"]);
-		exit;
-	} */
+    if (empty($body["name"])
+        || empty($body["habitat"])
+        || empty($body["diet"])
+        || empty($body["features"])
+        || !isset($body["wingspan"])
+        || !isset($body["weight"])) {
+        header("Content-Type: application/json; charset=utf-8");
+        http_response_code(400);
+        echo json_encode(["message" => "missing field(s). Required: name, habitat, diet, features, wingspan, weight"]);
+        exit;
+    }
 
-	if (empty($body["name"])
-		|| empty($body["habitat"])
-		|| empty($body["diet"])
-		|| empty($body["features"])
-		|| empty($body["wingspan"])
-		|| empty($body["weight"])) {
-			header("Content-Type: application/json; charset=utf-8");
-			http_response_code(400);
-			echo json_encode(["message" => "missing field(s). Required fields: 'name', 'description', 'price', 'weight'"]);
-			exit;
-	}
-	
-	$stmt = $conn->prepare("UPDATE birbs
-			SET name = :name, description = :description, wingspan = :wingspan, weight_in_grams = :weight WHERE id = :id");
-	
-	$stmt->bindParam(":name", $body["name"]);
-	$stmt->bindParam(":habitat", $body["habitat"]);
-	$stmt->bindParam(":diet", $body["diet"]);
-	$stmt->bindParam(":features", $body["features"]);
-	$stmt->bindParam(":weight", $body["weight"], PDO::PARAM_INT);
-	$stmt->bindParam(":wingspan", $body["wingspan"], PDO::PARAM_INT);
-	$stmt->bindParam(":id", $id, PDO::PARAM_INT);
+    $stmt = $conn->prepare("UPDATE birbs
+                            SET name = :name, habitat = :habitat, diet = :diet, features = :features, wingspan = :wingspan, weight_in_grams = :weight
+                            WHERE id = :id");
+
+    $stmt->bindParam(":name", $body["name"]);
+    $stmt->bindParam(":habitat", $body["habitat"]);
+    $stmt->bindParam(":diet", $body["diet"]);
+    $stmt->bindParam(":features", $body["features"]);
+    $stmt->bindParam(":wingspan", $body["wingspan"]);
+    $stmt->bindParam(":weight", $body["weight"], PDO::PARAM_INT);
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
 
     $stmt->execute();
 
-    $stmt = $conn->prepare("SELECT * FROM birbs WHERE id = :id");
+    $stmt = $conn->prepare("SELECT id, name, habitat, diet, weight_in_grams, wingspan, features FROM birbs WHERE id = :id");
     $stmt->bindParam(":id", $id, PDO::PARAM_INT);
     $stmt->execute();
 
