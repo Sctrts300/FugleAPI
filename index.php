@@ -1,93 +1,139 @@
 <?php
-require("../db.php");
+require(__DIR__ . "/db.php");
 
 function validateID() {
+        global $conn;
+        if (empty($_GET["id"])) {
+            http_response_code(400);
+            exit;
+        }
 
-		global $conn;
-		if (empty($_GET["id"])) {
-		http_response_code(400);
-		exit;
-	}
+        $id = $_GET["id"];
 
-	$id = $_GET["id"];
+        if (!is_numeric($id)) {
+            header("Content-Type: application/json; charset=utf-8");
+            http_response_code(400);
+            echo json_encode(["message" => "ID is malformed"]);
+            exit;
+        }
 
-	if (!is_numeric($id)) {
-		header("Content-Type: application/json; charset=utf-8");
-		http_response_code(400);
-		echo json_encode(["message" => "ID is malformed"]);
-		exit;
-	}
+        $id = intval($id, 10);
 
-	$id = intval($id, 10);
+        $stmt = $conn->prepare("SELECT * FROM birbs WHERE id = :id");
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-	$stmt = $conn->prepare("SELECT * FROM products WHERE id = :id");
-	$stmt->bindParam(":id", $id, PDO::PARAM_INT);
-	$stmt->execute();
-	$result = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($result)) {
+            http_response_code(404);
+            exit;
+        }
 
-	if (!is_array($result)) {
-		http_response_code(404);
-		exit;
-	}
-
-	return $id;
+        return $id;
 }
 
 // HENT ALLE PRODUKTER
 if ($_SERVER["REQUEST_METHOD"] === "GET" && empty($_GET["id"])) {
-	$stmt = $conn->prepare("SELECT id, name FROM products");
-	$stmt->execute();
-	$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $limit = isset($_GET["limit"]) ? intval($_GET["limit"]) : 10;
+    $offset = isset($_GET["offset"]) ? intval($_GET["offset"]) : 0;
 
-	// Tilføj Hypermedia Controls
-	for ($i = 0; $i < count($results); $i++) {
-		$results[$i]["url"] = "http://localhost/webshop/products?id=" . $results[$i]["id"];
-		unset($results[$i]["id"]);
-	}
+    $stmt = $conn->prepare("SELECT COUNT(id) FROM birbs");
+    $stmt->execute();
+    $totalCount = (int)$stmt->fetchColumn();
+    
+    $stmt = $conn->prepare("SELECT id, name FROM birbs LIMIT :limit OFFSET :offset");
+    $stmt->bindParam(":limit", $limit, PDO::PARAM_INT);
+    $stmt->bindParam(":offset", $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	header("Content-Type: application/json; charset=utf-8");
-	$output = ["results" => $results];
-	echo json_encode($output);
+    $nextOffset = $offset + $limit;
+    $prevOffset = $offset - $limit;
+
+    $base = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']) . "/" . basename($_SERVER['SCRIPT_NAME']);
+    $next = $base . "?offset=$nextOffset&limit=$limit";
+    $prev = $base . "?offset=$prevOffset&limit=$limit";
+
+    // Tilføj Hypermedia Controls
+    for ($i = 0; $i < count($results); $i++) {
+        $results[$i]["url"] = $base . "?id=" . $results[$i]["id"];
+        unset($results[$i]["id"]);
+    }
+
+    header("Content-Type: application/json; charset=utf-8");
+    $output = [
+        "count" => $totalCount,
+        "next" => $nextOffset < $totalCount ? $next : null,
+        "prev" => $offset <= 0 ? null : $prev,
+        "results" => $results
+    ];
+    echo json_encode($output);
 }
 
 // HENT ENKELT PRODUKT
 if ($_SERVER["REQUEST_METHOD"] === "GET" && !empty($_GET["id"])) {
-	$id = validateID();
+    $id = validateID();
 
-	$stmt = $conn->prepare("SELECT * FROM products WHERE id = :id");
-	$stmt->bindParam(":id", $id, PDO::PARAM_INT);
-	$stmt->execute();
+    $stmt = $conn->prepare("SELECT 
+                        birbs.id, birbs.name,
+                        birbs.description, birbs.wingspan,
+                        birbs.weight_in_grams, birbs.habitat, birbs.diet, birbs.features, media.url AS url
+            FROM birbs
+                INNER JOIN product_media ON product_media.birb_id = birbs.id
+                INNER JOIN media ON media.id = product_media.media_id
+            WHERE birbs.id = :id");
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+    $stmt->execute();
 
-	$result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	header("Content-Type: application/json; charset=utf-8");
-	echo json_encode($result);
+    $output = [
+        "id" => $results[0]["id"],
+        "name" => $results[0]["name"],
+        "habitat" => $results[0]["habitat"],
+        "diet" => $results[0]["diet"],
+        "weight" => $results[0]["weight_in_grams"],
+        "wingspan" => $results[0]["wingspan"],
+        "features" => $results[0]["features"],
+        "url" => [],
+	];
+
+    for ($i = 0; $i < count($results); $i++) {
+        $output["url"][] = $results[$i]["url"];
+    }
+
+    header("Content-Type: application/json; charset=utf-8");
+    echo json_encode($output);
 }
 
 // OPRET ET PRODUKT
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-	$name = $_POST["name"];
-	$description = $_POST["description"];
-	$price = $_POST["price"];
-	$weight = $_POST["weight"];
+    $name = $_POST["name"];
+    $habitat = $_POST["habitat"];
+    $diet = $_POST["diet"];
+    $features = $_POST["features"];
+    $weight = $_POST["weight"];
+    $wingspan = $_POST["wingspan"];
 
-	$stmt = $conn->prepare("INSERT INTO products (`name`, `description`, `price`, `weight_in_grams`)
-													VALUES(:name, :description, :price, :weight)");
+	$stmt = $conn->prepare("INSERT INTO birbs (`name`, `habitat`, `diet`, `wingspan`, `features`, `weight_in_grams`)
+													VALUES(:name, :habitat, :diet, :wingspan, :features, :weight)");
 	
-	$stmt->bindParam(":description", $description);
 	$stmt->bindParam(":name", $name);
-	$stmt->bindParam(":price", $price, PDO::PARAM_INT);
+	$stmt->bindParam(":habitat", $habitat);
+	$stmt->bindParam(":diet", $diet);
 	$stmt->bindParam(":weight", $weight, PDO::PARAM_INT);
+	$stmt->bindParam(":wingspan", $wingspan, PDO::PARAM_INT);
+	$stmt->bindParam(":features", $features);
 
-	$stmt->execute();
-	http_response_code(201);
+    $stmt->execute();
+    http_response_code(201);
 }
 
 // REDIGER ET PRODUKT (PUT)
 if ($_SERVER["REQUEST_METHOD"] === "PUT") {
-	$id = validateID();
+    $id = validateID();
 
-	parse_str(file_get_contents("php://input"), $body);
+    parse_str(file_get_contents("php://input"), $body);
 
 /* 	if (empty($body["name"])) {
 		header("Content-Type: application/json; charset=utf-8");
@@ -115,8 +161,10 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
 	} */
 
 	if (empty($body["name"])
-		|| empty($body["description"])
-		|| empty($body["price"])
+		|| empty($body["habitat"])
+		|| empty($body["diet"])
+		|| empty($body["features"])
+		|| empty($body["wingspan"])
 		|| empty($body["weight"])) {
 			header("Content-Type: application/json; charset=utf-8");
 			http_response_code(400);
@@ -124,38 +172,35 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
 			exit;
 	}
 	
-	$stmt = $conn->prepare("UPDATE products
-			SET name = :name, description = :description, price = :price, weight_in_grams = :weight WHERE id = :id");
+	$stmt = $conn->prepare("UPDATE birbs
+			SET name = :name, description = :description, wingspan = :wingspan, weight_in_grams = :weight WHERE id = :id");
 	
-	$stmt->bindParam(":description", $body["description"]);
 	$stmt->bindParam(":name", $body["name"]);
-	$stmt->bindParam(":price", $body["price"], PDO::PARAM_INT);
+	$stmt->bindParam(":habitat", $body["habitat"]);
+	$stmt->bindParam(":diet", $body["diet"]);
+	$stmt->bindParam(":features", $body["features"]);
 	$stmt->bindParam(":weight", $body["weight"], PDO::PARAM_INT);
+	$stmt->bindParam(":wingspan", $body["wingspan"], PDO::PARAM_INT);
 	$stmt->bindParam(":id", $id, PDO::PARAM_INT);
 
-	$stmt->execute();
+    $stmt->execute();
 
-	$stmt = $conn->prepare("SELECT * FROM products WHERE id = :id");
-	$stmt->bindParam(":id", $id, PDO::PARAM_INT);
-	$stmt->execute();
+    $stmt = $conn->prepare("SELECT * FROM birbs WHERE id = :id");
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+    $stmt->execute();
 
-	header("Content-Type: application/json; charset=utf-8");
-	http_response_code(200);
-	echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+    header("Content-Type: application/json; charset=utf-8");
+    http_response_code(200);
+    echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
 }
 
 // SLET ET PRODUKT
 if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
-	if (empty($_GET["id"])) {
-		http_response_code(400);
-		exit;
-	}
+    $id = validateID();
 
-	$id = $_GET["id"];
+    $stmt = $conn->prepare("DELETE FROM birbs WHERE id = :id");
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
 
-	$stmt = $conn->prepare("DELETE FROM products WHERE id = :id");
-	$stmt->bindParam(":id", $id, PDO::PARAM_INT);
-
-	$stmt->execute();
-	http_response_code(204);
+    $stmt->execute();
+    http_response_code(204);
 }
