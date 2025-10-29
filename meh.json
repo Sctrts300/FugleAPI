@@ -1,0 +1,164 @@
+{
+    "birds": [
+    {
+      "name": "Shoebill",
+      "habitat": "Swamps of central tropical Africa",
+      "diet": "Fish (especially lungfish), frogs, small reptiles",
+      "weight": "4–7 kg",
+      "wingspan": "2.1–2.6 m",
+      "features": "Massive shoe-shaped bill, dinosaur-like posture, slow movements"
+    },
+    {
+      "name": "Andean Cock-of-the-Rock",
+      "habitat": "Cloud forests of the Andes (South America)",
+      "diet": "Fruits, insects, small vertebrates",
+      "weight": "230–300 g",
+      "wingspan": "65–70 cm",
+      "features": "Bright red-orange plumage, large half-disc crest, loud display calls"
+    },
+    {
+      "name": "Bearded Vulture",
+      "habitat": "Mountainous regions of Europe, Africa, and Asia",
+      "diet": "Mostly bones (up to 85%), small mammals",
+      "weight": "4.5–7.8 kg",
+      "wingspan": "2.3–2.8 m",
+      "features": "Orange-stained feathers, drops bones to crack them, bearded face"
+    },
+    {
+      "name": "Blue-footed Booby",
+      "habitat": "Coastal areas of the eastern Pacific (Galápagos, Peru, Mexico)",
+      "diet": "Fish, squid",
+      "weight": "1.3–1.8 kg",
+      "wingspan": "1.5 m",
+      "features": "Bright blue feet, elaborate mating dances, dives for prey"
+    },
+    {
+      "name": "Club-winged Manakin",
+      "habitat": "Cloud forests of Ecuador and Colombia",
+      "diet": "Fruits and small insects",
+      "weight": "15–20 g",
+      "wingspan": "9–10 cm",
+      "features": "Makes violin-like sounds by rubbing wings together"
+    },
+    {
+      "name": "Frigatebird",
+      "habitat": "Tropical and subtropical oceans",
+      "diet": "Fish, squid, stolen food from other birds",
+      "weight": "1–1.5 kg",
+      "wingspan": "2.1–2.3 m",
+      "features": "Huge red throat pouch in males, long forked tail, cannot land on water"
+    },
+    {
+      "name": "Great Potoo",
+      "habitat": "Tropical forests of Central and South America",
+      "diet": "Large flying insects, small bats",
+      "weight": "360–650 g",
+      "wingspan": "70–80 cm",
+      "features": "Camouflaged as tree bark, haunting vocalizations, nocturnal"
+    },
+    {
+      "name": "Greater Sage-Grouse",
+      "habitat": "Sagebrush plains of western North America",
+      "diet": "Leaves, buds, insects",
+      "weight": "1.5–3 kg",
+      "wingspan": "90–100 cm",
+      "features": "Males inflate yellow air sacs and make popping sounds in displays"
+    },
+    {
+      "name": "Guianan Cock-of-the-Rock",
+      "habitat": "Rainforests of northern South America",
+      "diet": "Fruits, insects, small reptiles",
+      "weight": "200–250 g",
+      "wingspan": "65–70 cm",
+      "features": "Bright orange plumage, half-moon crest, communal courtship displays"
+    },
+    {
+      "name": "Harpy Eagle",
+      "habitat": "Tropical rainforests of Central and South America",
+      "diet": "Monkeys, sloths, large birds",
+      "weight": "6–9 kg",
+      "wingspan": "1.8–2.2 m",
+      "features": "Massive claws, crown-like feathers, incredibly powerful hunter"
+    },
+    {
+      "name": "Helmeted Hornbill",
+      "habitat": "Rainforests of Southeast Asia",
+      "diet": "Fruits (mainly figs), small animals",
+      "weight": "3–3.5 kg",
+      "wingspan": "1.3–1.5 m",
+      "features": "Solid casque used for aerial headbutting, eerie laughing call"
+    },
+    {
+      "name": "Hoatzin",
+      "habitat": "Swamps and river forests of the Amazon Basin",
+      "diet": "Leaves (fermenting gut), fruits, flowers",
+      "weight": "700–900 g",
+      "wingspan": "65–75 cm",
+      "features": "Ferments food like a cow, smells bad, chicks have clawed wings"
+    },
+    {
+      "name": "Inca Tern",
+      "habitat": "Coastal cliffs of Peru and Chile",
+      "diet": "Fish, planktonic crustaceans",
+      "weight": "180–210 g",
+      "wingspan": "64–75 cm",
+      "features": "Gray body with elegant white mustache, bright red beak and feet"
+    },
+    {
+      "name": "Kakapo",
+      "habitat": "Forests of New Zealand",
+      "diet": "Seeds, fruits, leaves, roots",
+      "weight": "2–4 kg",
+      "wingspan": "Not applicable (flightless)",
+      "features": "Flightless nocturnal parrot, sweet smell, booming mating calls"
+    },
+    {
+      "name": "King of Saxony Bird-of-Paradise",
+      "habitat": "Mountain forests of New Guinea",
+      "diet": "Fruits, insects",
+      "weight": "70–100 g",
+      "wingspan": "20–25 cm",
+      "features": "Two extremely long head plumes used in mating displays"
+    },
+    {
+      "name": "Long-wattled Umbrellabird",
+      "habitat": "Rainforests of Colombia and Ecuador",
+      "diet": "Fruits, insects, small vertebrates",
+      "weight": "400–500 g",
+      "wingspan": "66–71 cm",
+      "features": "Large hanging throat wattle, umbrella-like crest"
+    },
+    {
+      "name": "Marabou Stork",
+      "habitat": "Savannas and wetlands of sub-Saharan Africa",
+      "diet": "Carrion, garbage, fish, small animals",
+      "weight": "4–9 kg",
+      "wingspan": "2.6–3.2 m",
+      "features": "Bare head, pink throat pouch, scavenger habits, called 'undertaker bird'"
+    },
+    {
+      "name": "Secretary Bird",
+      "habitat": "Grasslands and savannas of sub-Saharan Africa",
+      "diet": "Snakes, insects, small mammals",
+      "weight": "3.5–4.5 kg",
+      "wingspan": "2.0–2.3 m",
+      "features": "Long legs, hunts by stomping prey, quill-like feathers on head"
+    },
+    {
+      "name": "Smew",
+      "habitat": "Northern Europe and Asia (lakes, rivers, wetlands)",
+      "diet": "Fish, aquatic invertebrates",
+      "weight": "450–600 g",
+      "wingspan": "56–69 cm",
+      "features": "Striking black-and-white plumage, looks like a 'panda duck'"
+    },
+    {
+      "name": "Superb Bird-of-Paradise",
+      "habitat": "Rainforests of New Guinea",
+      "diet": "Fruits, insects",
+      "weight": "70–100 g",
+      "wingspan": "25–30 cm",
+      "features": "Transforms into a black oval with blue highlights during courtship"
+    }
+  ]
+}

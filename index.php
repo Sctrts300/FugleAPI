@@ -1,7 +1,6 @@
 <?php
 require(__DIR__ . "/db.php");
 
-// enable errors for debugging (remove on production)
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
@@ -78,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && empty($_GET["id"])) {
 if ($_SERVER["REQUEST_METHOD"] === "GET" && !empty($_GET["id"])) {
     $id = validateID();
 
-    $stmt = $conn->prepare("SELECT id, name, habitat, diet, weight_in_grams, wingspan, features FROM birbs WHERE id = :id");
+    $stmt = $conn->prepare("SELECT id, name, habitat, diet, weight_in_grams, wingspan_in_meters, features FROM birbs WHERE id = :id");
     $stmt->bindParam(":id", $id, PDO::PARAM_INT);
     $stmt->execute();
 
@@ -111,7 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
-    $stmt = $conn->prepare("INSERT INTO birbs (`name`, `habitat`, `diet`, `wingspan`, `features`, `weight_in_grams`)
+    $stmt = $conn->prepare("INSERT INTO birbs (`name`, `habitat`, `diet`, `wingspan_in_meters`, `features`, `weight_in_grams`)
                             VALUES(:name, :habitat, :diet, :wingspan, :features, :weight)");
 
     $stmt->bindParam(":name", $name);
@@ -144,7 +143,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
     }
 
     $stmt = $conn->prepare("UPDATE birbs
-                            SET name = :name, habitat = :habitat, diet = :diet, features = :features, wingspan = :wingspan, weight_in_grams = :weight
+                            SET name = :name, habitat = :habitat, diet = :diet, features = :features, wingspan_in_meters = :wingspan, weight_in_grams = :weight
                             WHERE id = :id");
 
     $stmt->bindParam(":name", $body["name"]);
@@ -157,7 +156,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
 
     $stmt->execute();
 
-    $stmt = $conn->prepare("SELECT id, name, habitat, diet, weight_in_grams, wingspan, features FROM birbs WHERE id = :id");
+    $stmt = $conn->prepare("SELECT id, name, habitat, diet, weight_in_grams, wingspan_in_meters, features FROM birbs WHERE id = :id");
     $stmt->bindParam(":id", $id, PDO::PARAM_INT);
     $stmt->execute();
 
