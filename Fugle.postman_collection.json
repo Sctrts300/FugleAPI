@@ -1,0 +1,199 @@
+{
+	"info": {
+		"_postman_id": "5ed983b0-982e-44cf-aaa8-1561fb0a0fee",
+		"name": "Fugle",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49441625",
+		"_collection_link": "https://thomsensidsel-9682722.postman.co/workspace/Sidsel-Team's-Workspace~dbe605dc-706d-4a5c-891e-2f274f972310/collection/49441625-5ed983b0-982e-44cf-aaa8-1561fb0a0fee?action=share&source=collection_link&creator=49441625"
+	},
+	"item": [
+		{
+			"name": "Get birb",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/FugleAPI/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"FugleAPI",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get specific birb",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/FugleAPI?id=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"FugleAPI"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Make birb",
+			"protocolProfileBehavior": {
+				"followOriginalHttpMethod": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "Superb Bird-of-Paradise",
+							"type": "text"
+						},
+						{
+							"key": "habitat",
+							"value": "Rainforests of New Guinea",
+							"type": "text"
+						},
+						{
+							"key": "diet",
+							"value": "Fruits, insects",
+							"type": "text"
+						},
+						{
+							"key": "weight",
+							"value": "70–100",
+							"type": "text"
+						},
+						{
+							"key": "wingspan",
+							"value": "0.25",
+							"type": "text"
+						},
+						{
+							"key": "features",
+							"value": "Transforms into a black oval with blue highlights during courtship",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/FugleAPI/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"FugleAPI",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete birb",
+			"protocolProfileBehavior": {
+				"followOriginalHttpMethod": true
+			},
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "?id",
+					"query": [
+						{
+							"key": "id",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "edit birb",
+			"protocolProfileBehavior": {
+				"followOriginalHttpMethod": true
+			},
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "King of Saxony Bird-of-Paradise",
+							"type": "text"
+						},
+						{
+							"key": "habitat",
+							"value": "Mountain forests of New Guinea",
+							"type": "text"
+						},
+						{
+							"key": "diet",
+							"value": "Fruits, insects",
+							"type": "text"
+						},
+						{
+							"key": "weight",
+							"value": "70–100",
+							"type": "text"
+						},
+						{
+							"key": "wingspan",
+							"value": "0.7",
+							"type": "text"
+						},
+						{
+							"key": "features",
+							"value": "Two extremely long head plumes used in mating displays",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/FugleAPI/index.php?id=15",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"FugleAPI",
+						"index.php"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "15"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
